@@ -3,107 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Varlık Yönetim Paneli</title>
+    <title>benim sitem</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 50; }
+        .modal.active { display: flex; }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-slate-50 font-sans">
 
     <!-- Navigasyon -->
-    <nav class="bg-blue-800 text-white p-4 shadow-lg">
+    <nav class="bg-slate-900 text-white p-4 shadow-xl">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold"><i class="fas fa-wallet mr-2"></i>AssetManager Pro</h1>
-            <div class="space-x-4">
-                <a href="#" class="hover:text-blue-200">Dashboard</a>
-                <a href="#" class="hover:text-blue-200">Varlıklarım</a>
-                <button class="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition">Giriş Yap</button>
+            <h1 class="text-xl font-bold italic"><i class="fas fa-chart-pie mr-2 text-blue-400"></i>ASSET-TRACKER</h1>
+            <div class="flex items-center gap-4">
+                <span id="live-btc" class="text-sm bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                    BTC: <span class="text-green-400">Yükleniyor...</span>
+                </span>
+                <button onclick="toggleModal()" class="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-bold">
+                    + Varlık Ekle
+                </button>
             </div>
         </div>
     </nav>
 
-    <!-- Ana İçerik -->
     <main class="container mx-auto mt-8 p-4">
-        
         <!-- Özet Kartları -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
-                <p class="text-gray-500 text-sm">Toplam Varlık</p>
-                <h2 class="text-3xl font-bold text-gray-800">₺1,250,000</h2>
-                <span class="text-green-500 text-sm font-semibold">+%2.4 (Bugün)</span>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-center">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border">
+                <p class="text-gray-400 text-xs font-bold uppercase">Toplam Portföy</p>
+                <h2 id="total-val" class="text-3xl font-black text-slate-800">₺0</h2>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
-                <p class="text-gray-500 text-sm">Nakit Oranı</p>
-                <h2 class="text-3xl font-bold text-gray-800">₺350,000</h2>
-                <span class="text-gray-400 text-sm">%28 Nakit</span>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border">
+                <p class="text-gray-400 text-xs font-bold uppercase">Varlık Sayısı</p>
+                <h2 id="asset-count" class="text-3xl font-black text-slate-800">0</h2>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-purple-500">
-                <p class="text-gray-500 text-sm">Yatırım Sayısı</p>
-                <h2 class="text-3xl font-bold text-gray-800">12 Adet</h2>
-                <span class="text-purple-500 text-sm font-semibold">Aktif Portföy</span>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-blue-100">
+                <p class="text-gray-400 text-xs font-bold uppercase">Durum</p>
+                <h2 class="text-xl font-bold text-blue-600 py-1 italic text-green-500">CANLI AKTİF</h2>
             </div>
         </div>
 
-        <!-- Varlık Listesi ve Grafik Alanı -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Tablo -->
-            <div class="lg:col-span-2 bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="p-4 border-b flex justify-between items-center">
-                    <h3 class="font-bold text-gray-700">Varlık Detayları</h3>
-                    <button class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">+ Yeni Ekle</button>
-                </div>
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-gray-50">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Varlık Listesi -->
+            <div class="lg:col-span-2 bg-white rounded-3xl shadow-sm border overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-gray-500 text-xs uppercase">
                         <tr>
-                            <th class="p-4 text-gray-600 font-semibold">Varlık Adı</th>
-                            <th class="p-4 text-gray-600 font-semibold">Miktar</th>
-                            <th class="p-4 text-gray-600 font-semibold">Fiyat</th>
-                            <th class="p-4 text-gray-600 font-semibold">Değişim</th>
+                            <th class="p-4">Varlık Tipi</th>
+                            <th class="p-4">Miktar</th>
+                            <th class="p-4">İşlem</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="p-4 font-medium italic">Bitcoin (BTC)</td>
-                            <td class="p-4 text-gray-600">0.5 BTC</td>
-                            <td class="p-4 font-bold text-gray-800">₺1,050,000</td>
-                            <td class="p-4 text-green-500 font-semibold">+%4.2</td>
-                        </tr>
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="p-4 font-medium">Apple Inc (AAPL)</td>
-                            <td class="p-4 text-gray-600">50 Adet</td>
-                            <td class="p-4 font-bold text-gray-800">₺150,000</td>
-                            <td class="p-4 text-red-500 font-semibold">-%0.8</td>
-                        </tr>
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="p-4 font-medium">Gram Altın</td>
-                            <td class="p-4 text-gray-600">20 gr</td>
-                            <td class="p-4 font-bold text-gray-800">₺50,000</td>
-                            <td class="p-4 text-green-500 font-semibold">+%0.5</td>
-                        </tr>
+                    <tbody id="asset-table-body" class="text-sm">
+                        <!-- Veriler buraya JS ile dolacak -->
                     </tbody>
                 </table>
             </div>
 
-            <!-- Dağılım Grafiği (Placeholder) -->
-            <div class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center justify-center">
-                <h3 class="font-bold text-gray-700 mb-4 self-start">Portföy Dağılımı</h3>
-                <!-- Buraya gerçek grafik gelecek (JS ile) -->
-                <div class="w-48 h-48 rounded-full border-8 border-blue-500 flex items-center justify-center">
-                    <span class="text-gray-400">Grafik Alanı</span>
-                </div>
-                <div class="mt-6 space-y-2 w-full">
-                    <div class="flex justify-between text-sm"><span class="text-blue-500">● Kripto</span> <span>%84</span></div>
-                    <div class="flex justify-between text-sm"><span class="text-red-500">● Hisse</span> <span>%12</span></div>
-                    <div class="flex justify-between text-sm"><span class="text-yellow-500">● Emtia</span> <span>%4</span></div>
-                </div>
+            <!-- Grafik -->
+            <div class="bg-white p-6 rounded-3xl shadow-sm border h-fit">
+                <h3 class="text-lg font-bold text-slate-700 mb-6 text-center">Dağılım</h3>
+                <canvas id="assetChart"></canvas>
             </div>
-
         </div>
     </main>
 
-    <footer class="text-center mt-12 pb-8 text-gray-500 text-sm">
-        &copy; 2024 AssetManager Pro - Tüm Hakları Saklıdır.
-    </footer>
+    <!-- VERİ GİRİŞ FORMU (MODAL) -->
+    <div id="assetModal" class="modal">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md mx-4">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">Yeni Varlık Ekle</h2>
+            <form id="assetForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 italic">Varlık Adı (Örn: Bitcoin, Altın, Apple)</label>
+                    <input type="text" id="assetName" required class="w-full mt-1 p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Miktar</label>
+                    <input type="number" id="assetAmount" step="any" required class="w-full mt-1 p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="flex gap-4 mt-6">
+                    <button type="button" onclick="toggleModal()" class="flex-1 px-4 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold">Vazgeç</button>
+                    <button type="submit" class="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
+    <script>
+        // Uygulama Durumu (Veriler)
+        let assets = JSON.parse(localStorage.getItem('assets')) || [];
+        let btcPriceTRY = 0;
+
+        // 1. Canlı Fiyat Çekme (CoinGecko API)
+        async function fetchLivePrices() {
+            try {
+                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=try');
+                const data = await response.json();
+                btcPriceTRY = data.bitcoin.try;
+                document.getElementById('live-btc').innerHTML = `BTC: <span class="text-green-400 font-bold">₺${btcPriceTRY.toLocaleString()}</span>`;
+                updateUI();
+            } catch (error) {
+                console.error("Fiyat çekilemedi:", error);
+            }
+        }
+
+        // 2. Modal Aç/Kapat
+        function toggleModal() {
+            document.getElementById('assetModal').classList.toggle('active');
+        }
+
+        // 3. Form Gönderimi (Yeni Varlık Ekleme)
+        document.getElementById('assetForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('assetName').value;
+            const amount = document.getElementById('assetAmount').value;
+
+            assets.push({ id: Date.now(), name, amount: parseFloat(amount) });
+            localStorage.setItem('assets', JSON.stringify(assets));
+            
+            document.getElementById('assetForm').reset();
+            toggleModal();
+            updateUI();
+        });
+
+        // 4. Varlık Silme
+        function deleteAsset(id) {
+            assets = assets.filter(a => a.id !== id);
+            localStorage.setItem('assets', JSON.stringify(assets));
+            updateUI();
+        }
+
+        // 5. Arayüzü Güncelleme
+        function updateUI() {
+            const tableBody = document.getElementById('asset-table-body');
+            tableBody.innerHTML = '';
+            let total = 0;
+
+            assets.forEach(asset => {
+                // Eğer varlık BTC ise canlı fiyatla çarp, değilse 1000 ile çarp (örnek varsayılan değer)
+                const price = asset.name.toLowerCase().includes('btc') || asset.name.toLowerCase().includes('bitcoin') ? btcPriceTRY : 1000;
+                const value = asset.amount * price;
+                total += value;
+
+                tableBody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="p-4 font-bold text-slate-700 uppercase">${asset.name}</td>
+                        <td class="p-4">${asset.amount} Birim</td>
+                        <td class="p-4">
+                            <button onclick="deleteAsset(${asset.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i> Sil</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('total-val').innerText = `₺${total.toLocaleString()}`;
+            document.getElementById('asset-count').innerText = assets.length;
+            updateChart();
+        }
+
+        // 6. Grafik Güncelleme
+        let myChart;
+        function updateChart() {
+            const ctx = document.getElementById('assetChart').getContext('2d');
+            const labels = assets.map(a => a.name);
+            const data = assets.map(a => a.amount);
+
+            if (myChart) myChart.destroy(); // Eski grafiği sil
+
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        // İlk çalıştırma
+        fetchLivePrices();
+        setInterval(fetchLivePrices, 30000); // 30 saniyede bir fiyat güncelle
+        updateUI();
+
+    </script>
 </body>
 </html>
