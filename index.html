@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Varlık Yönetim Paneli</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <!-- Navigasyon -->
+    <nav class="bg-blue-800 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold"><i class="fas fa-wallet mr-2"></i>AssetManager Pro</h1>
+            <div class="space-x-4">
+                <a href="#" class="hover:text-blue-200">Dashboard</a>
+                <a href="#" class="hover:text-blue-200">Varlıklarım</a>
+                <button class="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition">Giriş Yap</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Ana İçerik -->
+    <main class="container mx-auto mt-8 p-4">
+        
+        <!-- Özet Kartları -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
+                <p class="text-gray-500 text-sm">Toplam Varlık</p>
+                <h2 class="text-3xl font-bold text-gray-800">₺1,250,000</h2>
+                <span class="text-green-500 text-sm font-semibold">+%2.4 (Bugün)</span>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
+                <p class="text-gray-500 text-sm">Nakit Oranı</p>
+                <h2 class="text-3xl font-bold text-gray-800">₺350,000</h2>
+                <span class="text-gray-400 text-sm">%28 Nakit</span>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-purple-500">
+                <p class="text-gray-500 text-sm">Yatırım Sayısı</p>
+                <h2 class="text-3xl font-bold text-gray-800">12 Adet</h2>
+                <span class="text-purple-500 text-sm font-semibold">Aktif Portföy</span>
+            </div>
+        </div>
+
+        <!-- Varlık Listesi ve Grafik Alanı -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Tablo -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-4 border-b flex justify-between items-center">
+                    <h3 class="font-bold text-gray-700">Varlık Detayları</h3>
+                    <button class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">+ Yeni Ekle</button>
+                </div>
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="p-4 text-gray-600 font-semibold">Varlık Adı</th>
+                            <th class="p-4 text-gray-600 font-semibold">Miktar</th>
+                            <th class="p-4 text-gray-600 font-semibold">Fiyat</th>
+                            <th class="p-4 text-gray-600 font-semibold">Değişim</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-4 font-medium italic">Bitcoin (BTC)</td>
+                            <td class="p-4 text-gray-600">0.5 BTC</td>
+                            <td class="p-4 font-bold text-gray-800">₺1,050,000</td>
+                            <td class="p-4 text-green-500 font-semibold">+%4.2</td>
+                        </tr>
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-4 font-medium">Apple Inc (AAPL)</td>
+                            <td class="p-4 text-gray-600">50 Adet</td>
+                            <td class="p-4 font-bold text-gray-800">₺150,000</td>
+                            <td class="p-4 text-red-500 font-semibold">-%0.8</td>
+                        </tr>
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-4 font-medium">Gram Altın</td>
+                            <td class="p-4 text-gray-600">20 gr</td>
+                            <td class="p-4 font-bold text-gray-800">₺50,000</td>
+                            <td class="p-4 text-green-500 font-semibold">+%0.5</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Dağılım Grafiği (Placeholder) -->
+            <div class="bg-white rounded-xl shadow-md p-6 flex flex-col items-center justify-center">
+                <h3 class="font-bold text-gray-700 mb-4 self-start">Portföy Dağılımı</h3>
+                <!-- Buraya gerçek grafik gelecek (JS ile) -->
+                <div class="w-48 h-48 rounded-full border-8 border-blue-500 flex items-center justify-center">
+                    <span class="text-gray-400">Grafik Alanı</span>
+                </div>
+                <div class="mt-6 space-y-2 w-full">
+                    <div class="flex justify-between text-sm"><span class="text-blue-500">● Kripto</span> <span>%84</span></div>
+                    <div class="flex justify-between text-sm"><span class="text-red-500">● Hisse</span> <span>%12</span></div>
+                    <div class="flex justify-between text-sm"><span class="text-yellow-500">● Emtia</span> <span>%4</span></div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="text-center mt-12 pb-8 text-gray-500 text-sm">
+        &copy; 2024 AssetManager Pro - Tüm Hakları Saklıdır.
+    </footer>
+
+</body>
+</html>
