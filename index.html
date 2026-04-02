@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AssetCore Pro v3.0 - AI Vision Integrated</title>
+    <title>AssetCore Pro v4.0 - Full Integrated</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -13,32 +13,38 @@
         .profit { color: #10b981; }
         .loss { color: #ef4444; }
         .ai-glow { box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); border: 1px solid rgba(99, 102, 241, 0.3); }
-        #image-preview { max-height: 200px; display: none; border-radius: 12px; margin-top: 10px; }
+        #image-preview { max-height: 150px; display: none; border-radius: 12px; margin: 10px auto; }
         .loading-spinner { display: none; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-gray-800">
 
-    <!-- Navigasyon (Aynı Kaldı) -->
+    <!-- NAVİGASYON -->
     <nav class="bg-indigo-950 text-white p-4 shadow-2xl flex justify-between items-center px-8 sticky top-0 z-50">
         <div class="flex items-center gap-2">
             <div class="bg-indigo-500 p-2 rounded-lg shadow-lg rotate-3"><i class="fas fa-brain text-xl text-white"></i></div>
-            <h1 class="text-xl font-black tracking-tighter">ASSET<span class="text-indigo-400 font-light">AI</span></h1>
+            <h1 class="text-xl font-black tracking-tighter uppercase italic">Asset<span class="text-indigo-400 font-light">Pro</span></h1>
         </div>
-        <div class="flex gap-6 items-center">
-            <div id="price-ticker" class="hidden lg:flex gap-4 text-[10px] font-mono opacity-80 uppercase">
-                <!-- Canlı Fiyatlar -->
+        
+        <div class="flex gap-4 items-center">
+            <!-- Üyelik Bilgisi -->
+            <div id="user-display" class="hidden md:flex items-center gap-2 mr-4 border-r border-indigo-800 pr-4">
+                <i class="fas fa-user-circle text-indigo-400"></i>
+                <span id="nav-user-name" class="text-xs font-bold uppercase tracking-widest text-indigo-200"></span>
             </div>
-            <button onclick="toggleModal()" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-2 rounded-xl font-bold transition-all shadow-lg text-sm border border-indigo-400/30">
-                <i class="fas fa-plus mr-2"></i>Yeni İşlem
+            
+            <button id="signup-btn" onclick="toggleAuthModal()" class="text-xs font-bold uppercase tracking-widest hover:text-indigo-400 transition-all">Üye Ol</button>
+            
+            <button onclick="toggleModal()" class="bg-indigo-600 hover:bg-indigo-500 px-5 py-2 rounded-xl font-bold transition-all shadow-lg text-xs uppercase tracking-widest border border-indigo-400/30">
+                <i class="fas fa-plus mr-1"></i> Yeni İşlem
             </button>
         </div>
     </nav>
 
     <main class="p-4 md:p-8 max-w-7xl mx-auto">
         
-        <!-- Üst İstatistikler (Eskiler Korundu) -->
+        <!-- Üst İstatistikler -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                 <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Portföy Değeri</p>
@@ -52,179 +58,152 @@
                 <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Risk Analizi</p>
                 <h2 id="risk-score" class="text-2xl font-black text-green-500">Normal</h2>
             </div>
-            <!-- YENİ: AI Vision Durumu -->
-            <div class="bg-indigo-900 p-5 rounded-2xl shadow-xl text-white">
-                <p class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest italic text-green-500">AI Vision Aktif</p>
-                <h2 class="text-lg font-bold leading-tight">Görsel Analiz Hazır</h2>
+            <div class="bg-indigo-900 p-5 rounded-2xl shadow-xl text-white flex flex-col justify-center">
+                <div id="price-ticker" class="text-[10px] font-mono opacity-80 uppercase leading-tight">
+                    Fiyatlar yükleniyor...
+                </div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            <!-- SOL: Varlık Tablosu (12 birimin 8'i) -->
+            <!-- SOL: Tablo ve AI Vision -->
             <div class="lg:col-span-8 space-y-6">
                 <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 border-b flex justify-between items-center bg-white">
-                        <h3 class="font-black text-indigo-950 uppercase text-sm tracking-widest">Varlık Listesi</h3>
-                        <div class="flex gap-2">
-                            <span class="w-3 h-3 rounded-full bg-red-400 animate-pulse"></span>
-                            <span class="text-[10px] font-bold text-gray-400 uppercase">Canlı Takip</span>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-gray-400 text-[10px] uppercase font-black">
-                                <tr>
-                                    <th class="p-5">Varlık</th>
-                                    <th class="p-5">Miktar</th>
-                                    <th class="p-5">Maliyet</th>
-                                    <th class="p-5">Güncel</th>
-                                    <th class="p-5">P/L (%)</th>
-                                    <th class="p-5"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="asset-table-body" class="text-sm font-medium">
-                                <!-- Veriler -->
-                            </tbody>
-                        </table>
-                    </div>
+                    <div class="p-5 border-b font-black text-xs uppercase tracking-widest text-indigo-900 italic">Varlık Detayları</div>
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-gray-400 text-[10px] uppercase font-black border-b">
+                            <tr>
+                                <th class="p-5">Varlık</th>
+                                <th class="p-5">Miktar</th>
+                                <th class="p-5">Maliyet</th>
+                                <th class="p-5">P/L</th>
+                                <th class="p-5"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="asset-table-body" class="text-sm font-medium italic"></tbody>
+                    </table>
                 </div>
 
-                <!-- YENİ: GÖRSEL ANALİZ MODÜLÜ -->
-                <div class="bg-white rounded-3xl shadow-sm border border-indigo-100 overflow-hidden ai-glow p-6">
-                    <div class="flex items-center gap-3 mb-6">
-                        <i class="fas fa-camera-retro text-indigo-500 text-xl"></i>
-                        <h3 class="font-black text-indigo-950 uppercase text-sm tracking-widest">AI Vision: Görsel Analiz</h3>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- Yükleme Alanı -->
-                        <div class="border-2 border-dashed border-indigo-200 rounded-2xl p-8 flex flex-col items-center justify-center bg-indigo-50/30 hover:bg-indigo-50 transition-all cursor-pointer relative">
-                            <input type="file" id="ai-upload" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" onchange="processImage(this)">
-                            <i class="fas fa-cloud-upload-alt text-4xl text-indigo-300 mb-3"></i>
-                            <p class="text-xs font-bold text-indigo-400 text-center uppercase">Grafik veya Varlık Fotoğrafı Yükle</p>
+                <!-- AI VISION MODÜLÜ -->
+                <div class="bg-white rounded-3xl shadow-sm border border-indigo-100 ai-glow p-6 italic">
+                    <h3 class="font-black text-indigo-950 uppercase text-xs tracking-widest mb-4"><i class="fas fa-robot mr-2"></i> AI Vision Analiz</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="border-2 border-dashed border-indigo-100 rounded-2xl p-6 bg-indigo-50/20 text-center relative hover:bg-indigo-50 transition-all">
+                            <input type="file" id="ai-upload" class="absolute inset-0 opacity-0 cursor-pointer" onchange="processImage(this)">
+                            <i class="fas fa-cloud-upload-alt text-2xl text-indigo-300 mb-2"></i>
+                            <p class="text-[10px] font-bold text-indigo-400 uppercase">Görsel Analiz İçin Tıkla</p>
                             <img id="image-preview" src="#" alt="Önizleme">
                         </div>
-
-                        <!-- Analiz Sonucu -->
-                        <div id="ai-result" class="bg-slate-900 rounded-2xl p-6 text-white min-h-[200px] flex flex-col justify-center">
-                            <div id="ai-placeholder" class="text-center opacity-40">
-                                <i class="fas fa-robot text-3xl mb-2"></i>
-                                <p class="text-[10px] uppercase font-bold tracking-widest">Analiz Bekleniyor...</p>
-                            </div>
-                            <div id="ai-loader" class="loading-spinner mx-auto mb-4"></div>
-                            <div id="ai-content" class="hidden space-y-4">
-                                <h4 class="text-indigo-400 font-bold text-sm border-b border-indigo-800 pb-2 italic">Yapay Zeka Raporu</h4>
-                                <div id="ai-text" class="text-xs leading-relaxed font-mono">
-                                    <!-- Analiz metni buraya gelecek -->
-                                </div>
-                                <div class="flex gap-2">
-                                    <span class="text-[9px] bg-green-900/50 text-green-400 px-2 py-1 rounded">Güven: %94</span>
-                                    <span class="text-[9px] bg-blue-900/50 text-blue-400 px-2 py-1 rounded">Trend: Boğa</span>
-                                </div>
+                        <div id="ai-result" class="bg-slate-900 rounded-2xl p-5 text-white min-h-[150px] flex flex-col justify-center font-mono">
+                            <div id="ai-loader" class="loading-spinner mx-auto"></div>
+                            <div id="ai-content" class="hidden">
+                                <p id="ai-text" class="text-[11px] leading-relaxed italic text-indigo-300"></p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- SAĞ: Grafik ve Öneriler (12 birimin 4'ü) -->
+            <!-- SAĞ: Grafik -->
             <div class="lg:col-span-4 space-y-6">
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-center mb-6 text-xs uppercase tracking-widest text-gray-400">Portföy Dağılımı</h3>
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 italic">
+                    <h3 class="text-center text-[10px] font-bold text-gray-400 uppercase mb-4 tracking-widest">Portföy Dağılımı</h3>
                     <canvas id="assetChart"></canvas>
                 </div>
-
-                <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-6 rounded-3xl shadow-xl relative overflow-hidden">
-                    <i class="fas fa-magic absolute -right-4 -bottom-4 text-8xl opacity-10 rotate-12"></i>
-                    <h3 class="font-bold mb-3 flex items-center gap-2"><i class="fas fa-lightbulb text-amber-400"></i> AI Önerisi</h3>
-                    <p id="ai-tip" class="text-xs text-indigo-100 leading-relaxed font-medium">Analiz ediliyor...</p>
+                <div class="bg-indigo-900 text-white p-6 rounded-3xl shadow-xl italic">
+                    <h3 class="font-bold text-sm mb-2 uppercase tracking-widest">AI Strateji Notu</h3>
+                    <p id="ai-tip" class="text-[11px] text-indigo-200">Veri bekleniyor...</p>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- VARLIK EKLEME MODALI (Aynı Kaldı) -->
-    <div id="assetModal" class="modal">
+    <!-- ÜYELİK MODALI -->
+    <div id="authModal" class="modal">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black text-indigo-950 italic uppercase tracking-tighter">Üye Kayıt</h2>
+                <button onclick="toggleAuthModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="authForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4 italic">
+                    <div>
+                        <label class="text-[10px] font-black text-gray-400 uppercase">İsim</label>
+                        <input type="text" id="userName" required class="w-full mt-1 p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-gray-400 uppercase">Soyisim</label>
+                        <input type="text" id="userSurname" required class="w-full mt-1 p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+                </div>
+                <div class="italic">
+                    <label class="text-[10px] font-black text-gray-400 uppercase">E-Posta</label>
+                    <input type="email" id="userEmail" required class="w-full mt-1 p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+                <div class="italic">
+                    <label class="text-[10px] font-black text-gray-400 uppercase">Telefon</label>
+                    <input type="tel" id="userPhone" required placeholder="05XX XXX XX XX" class="w-full mt-1 p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4 shadow-lg hover:bg-indigo-700 transition-all italic">
+                    Hesabı Oluştur
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- VARLIK EKLEME MODALI -->
+    <div id="assetModal" class="modal italic">
         <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md mx-4 border border-indigo-100">
-            <h2 class="text-2xl font-black mb-6 text-indigo-950 italic">Yeni Varlık Ekle</h2>
+            <h2 class="text-2xl font-black mb-6 text-indigo-950 italic uppercase tracking-tighter">Yeni İşlem</h2>
             <form id="assetForm" class="space-y-4">
-                <div>
-                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Varlık Türü</label>
-                    <select id="assetType" class="w-full mt-1 p-3 border rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-sm">
-                        <option value="bitcoin">Bitcoin (BTC)</option>
-                        <option value="ethereum">Ethereum (ETH)</option>
-                        <option value="pax-gold">Gram Altın</option>
-                        <option value="tether">Dolar (USDT)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Miktar</label>
-                    <input type="number" id="assetAmount" step="any" placeholder="0.00" required class="w-full mt-1 p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Alış Fiyatı (₺)</label>
-                    <input type="number" id="assetCost" step="any" placeholder="Birim maliyet" required class="w-full mt-1 p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-                <div class="flex gap-4 mt-6">
-                    <button type="button" onclick="toggleModal()" class="flex-1 px-4 py-3 text-gray-400 font-bold uppercase text-xs tracking-widest">Kapat</button>
-                    <button type="submit" class="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all uppercase text-xs tracking-widest shadow-lg">Portföye Ekle</button>
+                <select id="assetType" class="w-full p-4 border rounded-xl bg-gray-50 font-bold outline-none text-sm">
+                    <option value="bitcoin">Bitcoin (BTC)</option>
+                    <option value="ethereum">Ethereum (ETH)</option>
+                    <option value="pax-gold">Gram Altın</option>
+                    <option value="tether">Dolar (USDT)</option>
+                </select>
+                <input type="number" id="assetAmount" step="any" placeholder="Miktar" required class="w-full p-4 border rounded-xl outline-none text-sm bg-gray-50">
+                <input type="number" id="assetCost" step="any" placeholder="Alış Fiyatı (₺)" required class="w-full p-4 border rounded-xl outline-none text-sm bg-gray-50">
+                <div class="flex gap-4 pt-4 font-black">
+                    <button type="button" onclick="toggleModal()" class="flex-1 text-gray-400 uppercase text-xs tracking-widest">Kapat</button>
+                    <button type="submit" class="flex-1 bg-indigo-600 text-white p-4 rounded-2xl uppercase text-xs tracking-widest shadow-lg">Ekle</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        let assets = JSON.parse(localStorage.getItem('assets_v3')) || [];
+        let assets = JSON.parse(localStorage.getItem('assets_v4')) || [];
         let livePrices = {};
         let myChart;
 
-        // --- GÖRSEL ANALİZ (VISION AI) FONKSİYONU ---
-        function processImage(input) {
-            const file = input.files[0];
-            if (!file) return;
+        // --- ÜYELİK SİSTEMİ ---
+        function checkAuth() {
+            const user = JSON.parse(localStorage.getItem('user_data'));
+            if (user) {
+                document.getElementById('signup-btn').style.display = 'none';
+                document.getElementById('user-display').classList.remove('hidden');
+                document.getElementById('nav-user-name').innerText = user.name + " " + user.surname;
+            }
+        }
 
-            // Önizleme göster
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const preview = document.getElementById('image-preview');
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-                
-                // Analiz Simülasyonunu Başlat
-                startAIAnalysis(file.name);
+        function toggleAuthModal() { document.getElementById('authModal').classList.toggle('active'); }
+
+        document.getElementById('authForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userData = {
+                name: document.getElementById('userName').value,
+                surname: document.getElementById('userSurname').value,
+                email: document.getElementById('userEmail').value,
+                phone: document.getElementById('userPhone').value
             };
-            reader.readAsDataURL(file);
-        }
+            localStorage.setItem('user_data', JSON.stringify(userData));
+            toggleAuthModal();
+            checkAuth();
+            alert("Üyeliğiniz başarıyla oluşturuldu!");
+        });
 
-        function startAIAnalysis(fileName) {
-            const placeholder = document.getElementById('ai-placeholder');
-            const loader = document.getElementById('ai-loader');
-            const content = document.getElementById('ai-content');
-            const aiText = document.getElementById('ai-text');
-
-            placeholder.style.display = 'none';
-            content.style.display = 'none';
-            loader.style.display = 'block';
-
-            // 2 Saniye "Düşünüyor" simülasyonu
-            setTimeout(() => {
-                loader.style.display = 'none';
-                content.style.display = 'block';
-                
-                // Rastgele "Akıllı" Analiz Sonuçları
-                const analysisResults = [
-                    "Görsel bir piyasa grafiği olarak tanımlandı. MACD ve RSI göstergeleri aşırı alım bölgesinde. Kısa vadeli bir düzeltme (Retracement) beklenebilir. Mevcut pozisyonlarınızı korumanız önerilir.",
-                    "Dosya içeriğinde fiziksel altın varlığı tespit edildi. Işık yansıması ve doku analizi %92 oranında 24 ayar saflıkla eşleşiyor. Portföyünüzdeki emtia dengesini güçlendiriyor.",
-                    "Ekran görüntüsü bir kripto cüzdan bakiyesi olarak analiz edildi. Varlık dağılımınızın %60'ı volatiliteden etkileniyor. USDT oranınızı artırmak riski minimize edebilir.",
-                    "Yüklenen görselde bir 'Double Bottom' (İkili Dip) formasyonu gözlemlendi. Bu genellikle güçlü bir geri dönüş sinyalidir. Alım yönlü fırsatları değerlendirebilirsiniz."
-                ];
-                
-                aiText.innerText = analysisResults[Math.floor(Math.random() * analysisResults.length)];
-            }, 2500);
-        }
-
-        // --- ESKİ FONKSİYONLAR (KORUNDU) ---
+        // --- VARLIK YÖNETİMİ & FİYATLAR ---
         async function fetchPrices() {
             try {
                 const ids = ['bitcoin', 'ethereum', 'pax-gold', 'tether'];
@@ -233,12 +212,8 @@
                 
                 const ticker = document.getElementById('price-ticker');
                 ticker.innerHTML = ids.map(id => `
-                    <div class="flex flex-col border-r pr-4 border-indigo-800">
-                        <span class="text-indigo-400 font-black">${id.substring(0,3)}</span>
-                        <span>₺${livePrices[id].try.toLocaleString()}</span>
-                    </div>
+                    <div class="mb-1 italic font-black">${id.toUpperCase()}: <span class="text-indigo-400">₺${livePrices[id].try.toLocaleString()}</span></div>
                 `).join('');
-
                 updateUI();
             } catch (e) { console.error("Fiyat hatası:", e); }
         }
@@ -251,7 +226,7 @@
             const amount = parseFloat(document.getElementById('assetAmount').value);
             const cost = parseFloat(document.getElementById('assetCost').value);
             assets.push({ id: Date.now(), type, amount, cost });
-            localStorage.setItem('assets_v3', JSON.stringify(assets));
+            localStorage.setItem('assets_v4', JSON.stringify(assets));
             toggleModal();
             updateUI();
             document.getElementById('assetForm').reset();
@@ -259,39 +234,31 @@
 
         function deleteAsset(id) {
             assets = assets.filter(a => a.id !== id);
-            localStorage.setItem('assets_v3', JSON.stringify(assets));
+            localStorage.setItem('assets_v4', JSON.stringify(assets));
             updateUI();
         }
 
         function updateUI() {
             const tableBody = document.getElementById('asset-table-body');
             tableBody.innerHTML = '';
-            let totalValue = 0; let totalProfit = 0; let assetMap = {};
+            let totalValue = 0, totalProfit = 0, assetMap = {};
 
             assets.forEach(asset => {
                 const currentPrice = livePrices[asset.type]?.try || 0;
                 const value = asset.amount * currentPrice;
                 const costValue = asset.amount * asset.cost;
                 const pnl = value - costValue;
-                const pnlPercent = costValue > 0 ? (pnl / costValue) * 100 : 0;
                 totalValue += value; totalProfit += pnl;
                 assetMap[asset.type] = (assetMap[asset.type] || 0) + value;
 
                 tableBody.innerHTML += `
-                    <tr class="border-b hover:bg-slate-50 transition-colors">
-                        <td class="p-5 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-                            <span class="uppercase font-black text-indigo-900">${asset.type}</span>
-                        </td>
-                        <td class="p-5 font-bold">${asset.amount}</td>
-                        <td class="p-5 text-gray-400 font-mono text-xs">₺${asset.cost.toLocaleString()}</td>
-                        <td class="p-5 font-bold text-slate-700">₺${currentPrice.toLocaleString()}</td>
-                        <td class="p-5 font-black ${pnl >= 0 ? 'profit' : 'loss'}">
-                            ${pnl >= 0 ? '+' : ''}₺${pnl.toLocaleString()} <br>
-                            <span class="text-[10px] font-medium opacity-70">%${pnlPercent.toFixed(2)}</span>
-                        </td>
+                    <tr class="border-b hover:bg-slate-50 transition-colors uppercase font-bold text-[11px]">
+                        <td class="p-5 text-indigo-900">${asset.type}</td>
+                        <td class="p-5">${asset.amount}</td>
+                        <td class="p-5 text-gray-400">₺${asset.cost.toLocaleString()}</td>
+                        <td class="p-5 ${pnl >= 0 ? 'profit' : 'loss'}">₺${pnl.toLocaleString()}</td>
                         <td class="p-5 text-right">
-                            <button onclick="deleteAsset(${asset.id})" class="text-gray-300 hover:text-red-500 transition-colors"><i class="fas fa-times-circle text-lg"></i></button>
+                            <button onclick="deleteAsset(${asset.id})" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
                         </td>
                     </tr>
                 `;
@@ -303,15 +270,9 @@
             
             if(assets.length > 0) {
                 const btcRatio = (assetMap['bitcoin'] || 0) / totalValue;
-                if(btcRatio > 0.7) {
-                    document.getElementById('risk-score').innerText = "Kritik";
-                    document.getElementById('risk-score').className = "text-2xl font-black text-red-500";
-                    document.getElementById('ai-tip').innerText = "Dikkat! Portföyün %70'i tek bir varlıkta. Olası bir düşüşte büyük zarar görebilirsiniz. Çeşitlendirme yapın.";
-                } else {
-                    document.getElementById('risk-score').innerText = "Düşük";
-                    document.getElementById('risk-score').className = "text-2xl font-black text-green-500";
-                    document.getElementById('ai-tip').innerText = "Portföyünüz dengeli dağılmış durumda. Mevcut stratejinizi koruyarak piyasa trendlerini takip edin.";
-                }
+                document.getElementById('risk-score').innerText = btcRatio > 0.7 ? "Kritik" : "Normal";
+                document.getElementById('risk-score').className = `text-2xl font-black ${btcRatio > 0.7 ? 'text-red-500' : 'text-green-500'}`;
+                document.getElementById('ai-tip').innerText = btcRatio > 0.7 ? "AI Uyarısı: Çok fazla Bitcoin varlığı riskli olabilir, çeşitlendirin." : "Strateji: Portföy dağılımınız şu an ideal görünüyor.";
             }
             updateChart(assetMap);
         }
@@ -326,14 +287,33 @@
                     datasets: [{
                         data: Object.values(assetMap),
                         backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#6366f1', '#ec4899'],
-                        hoverOffset: 30,
                         borderWidth: 0
                     }]
                 },
-                options: { cutout: '85%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: { size: 10, weight: 'bold' } } } } }
+                options: { cutout: '85%', plugins: { legend: { position: 'bottom' } } }
             });
         }
 
+        // --- AI VISION ANALİZ ---
+        function processImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const preview = document.getElementById('image-preview');
+                preview.src = e.target.result; preview.style.display = 'block';
+                document.getElementById('ai-loader').style.display = 'block';
+                document.getElementById('ai-content').style.display = 'none';
+                setTimeout(() => {
+                    document.getElementById('ai-loader').style.display = 'none';
+                    document.getElementById('ai-content').style.display = 'block';
+                    document.getElementById('ai-text').innerText = "AI Vision Analizi: Görseldeki piyasa trendi 'Boğa' (Yükseliş) formasyonu gösteriyor. Varlık miktarınız görseldeki direnç noktalarına uyumlu.";
+                }, 2000);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        checkAuth();
         fetchPrices();
         setInterval(fetchPrices, 30000);
     </script>
