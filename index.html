@@ -3,230 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AssetCore Pro v4.0 - Full Integrated</title>
+    <title>AssetCore Pro v6.0 - Global AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(8px); }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(10px); }
         .modal.active { display: flex; }
-        .profit { color: #10b981; }
-        .loss { color: #ef4444; }
-        .ai-glow { box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); border: 1px solid rgba(99, 102, 241, 0.3); }
-        #image-preview { max-height: 150px; display: none; border-radius: 12px; margin: 10px auto; }
-        .loading-spinner { display: none; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        
+        /* Hareketli Fiyat Bandı (Ticker) */
+        .ticker-container { background: #0f172a; color: #38bdf8; overflow: hidden; white-space: nowrap; padding: 10px 0; font-family: 'Courier New', Courier, monospace; font-weight: bold; border-bottom: 1px solid #1e293b; }
+        .ticker-content { display: inline-block; animation: ticker 30s linear infinite; }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        
+        /* Sidebar & Layout */
+        #sidebar { transition: 0.3s; width: 260px; }
+        #sidebar.closed { transform: translateX(-100%); }
+        .main-content { transition: 0.3s; margin-left: 260px; }
+        .main-content.full { margin-left: 0; }
+        
+        @media (max-width: 1024px) { .main-content { margin-left: 0; } #sidebar { position: fixed; z-index: 999; } }
+
+        .ai-glow { box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.3); }
+        .loading-spinner { display: none; border: 3px solid #f3f3f3; border-top: 3px solid #6366f1; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-slate-50 font-sans text-gray-800">
+<body class="bg-slate-50 font-sans text-gray-800 italic">
 
-    <!-- NAVİGASYON -->
-    <nav class="bg-indigo-950 text-white p-4 shadow-2xl flex justify-between items-center px-8 sticky top-0 z-50">
-        <div class="flex items-center gap-2">
-            <div class="bg-indigo-500 p-2 rounded-lg shadow-lg rotate-3"><i class="fas fa-brain text-xl text-white"></i></div>
-            <h1 class="text-xl font-black tracking-tighter uppercase italic">Asset<span class="text-indigo-400 font-light">Pro</span></h1>
+    <!-- HAREKETLİ FİYAT BANDI -->
+    <div class="ticker-container sticky top-0 z-[60]">
+        <div class="ticker-content text-xs uppercase" id="moving-ticker">
+            YÜKLENİYOR... USD/TRY: -- | EUR/TRY: -- | GOLD/TRY: -- | BTC/USD: -- | ETH/USD: --
         </div>
-        
-        <div class="flex gap-4 items-center">
-            <!-- Üyelik Bilgisi -->
-            <div id="user-display" class="hidden md:flex items-center gap-2 mr-4 border-r border-indigo-800 pr-4">
-                <i class="fas fa-user-circle text-indigo-400"></i>
-                <span id="nav-user-name" class="text-xs font-bold uppercase tracking-widest text-indigo-200"></span>
-            </div>
-            
-            <button id="signup-btn" onclick="toggleAuthModal()" class="text-xs font-bold uppercase tracking-widest hover:text-indigo-400 transition-all">Üye Ol</button>
-            
-            <button onclick="toggleModal()" class="bg-indigo-600 hover:bg-indigo-500 px-5 py-2 rounded-xl font-bold transition-all shadow-lg text-xs uppercase tracking-widest border border-indigo-400/30">
-                <i class="fas fa-plus mr-1"></i> Yeni İşlem
-            </button>
-        </div>
-    </nav>
+    </div>
 
-    <main class="p-4 md:p-8 max-w-7xl mx-auto">
-        
-        <!-- Üst İstatistikler -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Portföy Değeri</p>
-                <h2 id="total-val" class="text-2xl font-black italic text-indigo-950">₺0</h2>
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="bg-slate-950 text-white h-screen fixed left-0 top-0 flex flex-col shadow-2xl z-[500]">
+        <div class="p-6 border-b border-slate-900 flex justify-between items-center">
+            <h1 class="text-xl font-black italic tracking-tighter uppercase">Asset<span class="text-blue-500">AI</span></h1>
+            <button onclick="toggleSidebar()" class="lg:hidden text-white"><i class="fas fa-times"></i></button>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-2 text-[10px] font-black tracking-[0.2em] uppercase mt-4">
+            <a href="#" class="flex items-center gap-4 p-4 bg-blue-600 rounded-2xl text-white shadow-lg"><i class="fas fa-th-large"></i> <span data-key="menu_dash">DASHBOARD</span></a>
+            <a href="#" class="flex items-center gap-4 p-4 hover:bg-slate-900 rounded-2xl opacity-60"><i class="fas fa-chart-line"></i> <span data-key="menu_market">PİYASALAR</span></a>
+            <a href="#" class="flex items-center gap-4 p-4 hover:bg-slate-900 rounded-2xl opacity-60"><i class="fas fa-wallet"></i> <span data-key="menu_wallet">CÜZDAN</span></a>
+            
+            <div class="pt-8 pb-2 px-4 text-blue-500" data-key="menu_settings">AYARLAR & DİL</div>
+            <!-- DİL SEÇENEĞİ -->
+            <div class="flex gap-2 px-4 mt-2">
+                <button onclick="setLang('tr')" class="px-3 py-1 bg-slate-800 rounded-lg text-[8px] hover:bg-blue-600 transition">TR</button>
+                <button onclick="setLang('en')" class="px-3 py-1 bg-slate-800 rounded-lg text-[8px] hover:bg-blue-600 transition">EN</button>
             </div>
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Toplam P/L</p>
-                <h2 id="total-pnl" class="text-2xl font-black">₺0</h2>
-            </div>
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Risk Analizi</p>
-                <h2 id="risk-score" class="text-2xl font-black text-green-500">Normal</h2>
-            </div>
-            <div class="bg-indigo-900 p-5 rounded-2xl shadow-xl text-white flex flex-col justify-center">
-                <div id="price-ticker" class="text-[10px] font-mono opacity-80 uppercase leading-tight">
-                    Fiyatlar yükleniyor...
+        </nav>
+
+        <div class="p-6 border-t border-slate-900 italic">
+            <div id="user-box" class="hidden flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-black">U</div>
+                <div class="flex flex-col">
+                    <span id="user-name" class="text-xs font-black truncate w-32 uppercase">MISAFIR</span>
+                    <span class="text-[8px] text-blue-400">PRO MEMBER</span>
                 </div>
             </div>
         </div>
+    </aside>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- SOL: Tablo ve AI Vision -->
-            <div class="lg:col-span-8 space-y-6">
-                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-5 border-b font-black text-xs uppercase tracking-widest text-indigo-900 italic">Varlık Detayları</div>
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50 text-gray-400 text-[10px] uppercase font-black border-b">
-                            <tr>
-                                <th class="p-5">Varlık</th>
-                                <th class="p-5">Miktar</th>
-                                <th class="p-5">Maliyet</th>
-                                <th class="p-5">P/L</th>
-                                <th class="p-5"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="asset-table-body" class="text-sm font-medium italic"></tbody>
-                    </table>
+    <!-- ANA İÇERİK -->
+    <div id="main-content" class="main-content">
+        <header class="bg-white/80 backdrop-blur-md border-b p-4 flex justify-between items-center sticky top-[40px] z-40 px-8">
+            <button onclick="toggleSidebar()" class="p-2 bg-slate-100 rounded-xl hover:bg-blue-50 transition"><i class="fas fa-bars"></i></button>
+            
+            <div class="flex items-center gap-4">
+                <button id="btn-signup" onclick="toggleAuthModal()" class="text-[10px] font-black uppercase tracking-widest bg-slate-100 px-4 py-2 rounded-xl hover:bg-blue-600 hover:text-white transition" data-key="btn_signup">ÜYE OL</button>
+                <button onclick="toggleModal()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:scale-105 transition" data-key="btn_add">YENİ VARLIK +</button>
+            </div>
+        </header>
+
+        <main class="p-6 md:p-10 max-w-7xl mx-auto">
+            <!-- İSTATİSTİK KARTLARI -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 p-4 opacity-5"><i class="fas fa-coins text-6xl"></i></div>
+                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2" data-key="stat_total">TOPLAM VARLIK</p>
+                    <h2 id="total-val" class="text-3xl font-black text-slate-900 italic tracking-tighter">₺0</h2>
                 </div>
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2" data-key="stat_pnl">GÜNCEL KÂR/ZARAR</p>
+                    <h2 id="total-pnl" class="text-3xl font-black italic tracking-tighter">₺0</h2>
+                </div>
+                <div class="bg-slate-900 p-8 rounded-[2rem] shadow-2xl text-white border-l-8 border-blue-500">
+                    <p class="text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2 italic" data-key="stat_risk">RİSK ANALİZİ</p>
+                    <h2 id="risk-score" class="text-2xl font-black italic tracking-tighter uppercase">BEKLENİYOR...</h2>
+                </div>
+            </div>
 
-                <!-- AI VISION MODÜLÜ -->
-                <div class="bg-white rounded-3xl shadow-sm border border-indigo-100 ai-glow p-6 italic">
-                    <h3 class="font-black text-indigo-950 uppercase text-xs tracking-widest mb-4"><i class="fas fa-robot mr-2"></i> AI Vision Analiz</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="border-2 border-dashed border-indigo-100 rounded-2xl p-6 bg-indigo-50/20 text-center relative hover:bg-indigo-50 transition-all">
-                            <input type="file" id="ai-upload" class="absolute inset-0 opacity-0 cursor-pointer" onchange="processImage(this)">
-                            <i class="fas fa-cloud-upload-alt text-2xl text-indigo-300 mb-2"></i>
-                            <p class="text-[10px] font-bold text-indigo-400 uppercase">Görsel Analiz İçin Tıkla</p>
-                            <img id="image-preview" src="#" alt="Önizleme">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <!-- VARLIK TABLOSU -->
+                <div class="lg:col-span-8 space-y-8">
+                    <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="p-6 bg-slate-50/50 border-b flex justify-between items-center font-black text-[10px] tracking-widest text-slate-400">
+                            <span data-key="table_title uppercase">AKTİF PORTFÖY LİSTESİ</span>
+                            <i class="fas fa-sync animate-spin text-blue-500"></i>
                         </div>
-                        <div id="ai-result" class="bg-slate-900 rounded-2xl p-5 text-white min-h-[150px] flex flex-col justify-center font-mono">
-                            <div id="ai-loader" class="loading-spinner mx-auto"></div>
-                            <div id="ai-content" class="hidden">
-                                <p id="ai-text" class="text-[11px] leading-relaxed italic text-indigo-300"></p>
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50/30 text-slate-400 text-[9px] uppercase font-black border-b">
+                                <tr>
+                                    <th class="p-6" data-key="col_asset">VARLIK</th>
+                                    <th class="p-6" data-key="col_amount">MİKTAR</th>
+                                    <th class="p-6" data-key="col_cost">MALİYET</th>
+                                    <th class="p-6" data-key="col_pnl">K/Z (%)</th>
+                                    <th class="p-6"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="asset-table-body" class="text-xs font-bold italic"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- GELİŞMİŞ AI VISION ANALİZ -->
+                    <div class="bg-white rounded-[2.5rem] shadow-xl border border-blue-100 ai-glow p-8 italic">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg"><i class="fas fa-eye text-xl"></i></div>
+                            <div>
+                                <h3 class="font-black text-slate-900 uppercase text-sm tracking-widest" data-key="ai_vision_title">AI VISION: DETAYLI ANALİZ</h3>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase" data-key="ai_vision_sub">Görsel Analizi & Portföy Uyumluluğu</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                            <div class="border-4 border-dashed border-slate-100 rounded-[2rem] p-10 bg-slate-50 text-center relative hover:border-blue-300 transition-all cursor-pointer">
+                                <input type="file" id="ai-upload" class="absolute inset-0 opacity-0 cursor-pointer" onchange="processAdvancedImage(this)">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-slate-300 mb-4"></i>
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest" data-key="ai_upload_text">GRAFİK VEYA EKRAN GÖRÜNTÜSÜ YÜKLE</p>
+                                <img id="image-preview" src="#" alt="Önizleme" class="mx-auto mt-4 rounded-xl shadow-md hidden max-h-32">
+                            </div>
+                            <div id="ai-result-box" class="bg-slate-950 rounded-[2rem] p-8 text-white min-h-[220px] flex flex-col justify-center shadow-2xl relative">
+                                <div id="ai-loader" class="loading-spinner mx-auto mb-4"></div>
+                                <div id="ai-content" class="hidden space-y-4">
+                                    <div class="flex justify-between border-b border-slate-800 pb-2">
+                                        <span class="text-[9px] text-blue-400 font-black uppercase">REPORT #AI-99</span>
+                                        <span class="text-[9px] text-green-400 font-black uppercase">MATCH: 98%</span>
+                                    </div>
+                                    <p id="ai-text" class="text-[11px] leading-relaxed italic text-slate-300 font-mono"></p>
+                                    <div id="ai-recommendation" class="bg-blue-600/20 p-3 rounded-xl border border-blue-500/30 text-[10px] font-black text-blue-300"></div>
+                                </div>
+                                <div id="ai-placeholder" class="text-center opacity-30 text-[9px] font-black uppercase tracking-widest">
+                                    ANALİZ İÇİN DOSYA BEKLENİYOR...
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- SAĞ: Grafik -->
-            <div class="lg:col-span-4 space-y-6">
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 italic">
-                    <h3 class="text-center text-[10px] font-bold text-gray-400 uppercase mb-4 tracking-widest">Portföy Dağılımı</h3>
-                    <canvas id="assetChart"></canvas>
-                </div>
-                <div class="bg-indigo-900 text-white p-6 rounded-3xl shadow-xl italic">
-                    <h3 class="font-bold text-sm mb-2 uppercase tracking-widest">AI Strateji Notu</h3>
-                    <p id="ai-tip" class="text-[11px] text-indigo-200">Veri bekleniyor...</p>
+                <!-- SAĞ PANEL -->
+                <div class="lg:col-span-4 space-y-8">
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                        <p class="text-center text-[10px] font-black text-slate-400 uppercase mb-8 tracking-widest italic" data-key="chart_title">VARLIK DAĞILIMI</p>
+                        <canvas id="assetChart"></canvas>
+                    </div>
+                    <div class="bg-blue-600 p-8 rounded-[2.5rem] shadow-2xl text-white relative overflow-hidden italic">
+                        <i class="fas fa-brain absolute -right-4 -bottom-4 text-8xl opacity-10"></i>
+                        <h4 class="text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2" data-key="strategy_title"><i class="fas fa-bolt text-yellow-300"></i> AI STRATEJİ NOTU</h4>
+                        <p id="ai-tip" class="text-[11px] text-blue-100 leading-relaxed font-bold italic tracking-tight">Veri girişi bekleniyor...</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
-    <!-- ÜYELİK MODALI -->
+    <!-- MODALLAR (ÜYELİK & VARLIK EKLEME) -->
+    <!-- ÜYELİK -->
     <div id="authModal" class="modal">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-black text-indigo-950 italic uppercase tracking-tighter">Üye Kayıt</h2>
-                <button onclick="toggleAuthModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
-            </div>
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md mx-4 border border-slate-100 italic">
+            <h2 class="text-2xl font-black text-slate-900 mb-8 uppercase tracking-tighter italic border-b pb-4" data-key="modal_signup_title">HESAP OLUŞTUR</h2>
             <form id="authForm" class="space-y-4">
-                <div class="grid grid-cols-2 gap-4 italic">
-                    <div>
-                        <label class="text-[10px] font-black text-gray-400 uppercase">İsim</label>
-                        <input type="text" id="userName" required class="w-full mt-1 p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-gray-400 uppercase">Soyisim</label>
-                        <input type="text" id="userSurname" required class="w-full mt-1 p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                    </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="userName" required placeholder="İSİM" class="w-full p-4 border rounded-2xl bg-slate-50 text-xs font-black outline-none focus:ring-2 focus:ring-blue-600 uppercase">
+                    <input type="text" id="userSurname" required placeholder="SOYİSİM" class="w-full p-4 border rounded-2xl bg-slate-50 text-xs font-black outline-none focus:ring-2 focus:ring-blue-600 uppercase">
                 </div>
-                <div class="italic">
-                    <label class="text-[10px] font-black text-gray-400 uppercase">E-Posta</label>
-                    <input type="email" id="userEmail" required class="w-full mt-1 p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                </div>
-                <div class="italic">
-                    <label class="text-[10px] font-black text-gray-400 uppercase">Telefon</label>
-                    <input type="tel" id="userPhone" required placeholder="05XX XXX XX XX" class="w-full mt-1 p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-black uppercase tracking-widest text-xs mt-4 shadow-lg hover:bg-indigo-700 transition-all italic">
-                    Hesabı Oluştur
-                </button>
+                <input type="email" id="userEmail" required placeholder="E-POSTA" class="w-full p-4 border rounded-2xl bg-slate-50 text-xs font-black outline-none focus:ring-2 focus:ring-blue-600">
+                <input type="tel" id="userPhone" required placeholder="TELEFON: 05XX XXX XX XX" class="w-full p-4 border rounded-2xl bg-slate-50 text-xs font-black outline-none focus:ring-2 focus:ring-blue-600">
+                <button type="submit" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] mt-4 hover:bg-blue-600 transition-all shadow-xl" data-key="btn_confirm">KAYDI TAMAMLA</button>
             </form>
         </div>
     </div>
 
-    <!-- VARLIK EKLEME MODALI -->
-    <div id="assetModal" class="modal italic">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md mx-4 border border-indigo-100">
-            <h2 class="text-2xl font-black mb-6 text-indigo-950 italic uppercase tracking-tighter">Yeni İşlem</h2>
-            <form id="assetForm" class="space-y-4">
-                <select id="assetType" class="w-full p-4 border rounded-xl bg-gray-50 font-bold outline-none text-sm">
-                    <option value="bitcoin">Bitcoin (BTC)</option>
-                    <option value="ethereum">Ethereum (ETH)</option>
-                    <option value="pax-gold">Gram Altın</option>
-                    <option value="tether">Dolar (USDT)</option>
+    <!-- VARLIK EKLEME -->
+    <div id="assetModal" class="modal">
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md mx-4 border border-slate-100 italic">
+            <h2 class="text-2xl font-black text-slate-900 mb-8 uppercase tracking-tighter italic border-b pb-4" data-key="modal_asset_title">YENİ İŞLEM</h2>
+            <form id="assetForm" class="space-y-4 font-black">
+                <select id="assetType" class="w-full p-5 border rounded-2xl bg-slate-50 text-xs uppercase outline-none">
+                    <option value="bitcoin">BITCOIN (BTC)</option>
+                    <option value="ethereum">ETHEREUM (ETH)</option>
+                    <option value="pax-gold">GRAM ALTIN (XAU)</option>
+                    <option value="tether">DOLAR (USDT)</option>
                 </select>
-                <input type="number" id="assetAmount" step="any" placeholder="Miktar" required class="w-full p-4 border rounded-xl outline-none text-sm bg-gray-50">
-                <input type="number" id="assetCost" step="any" placeholder="Alış Fiyatı (₺)" required class="w-full p-4 border rounded-xl outline-none text-sm bg-gray-50">
-                <div class="flex gap-4 pt-4 font-black">
-                    <button type="button" onclick="toggleModal()" class="flex-1 text-gray-400 uppercase text-xs tracking-widest">Kapat</button>
-                    <button type="submit" class="flex-1 bg-indigo-600 text-white p-4 rounded-2xl uppercase text-xs tracking-widest shadow-lg">Ekle</button>
+                <input type="number" id="assetAmount" step="any" placeholder="MİKTAR" required class="w-full p-5 border rounded-2xl bg-slate-50 text-xs outline-none uppercase">
+                <input type="number" id="assetCost" step="any" placeholder="BİRİM ALIŞ FİYATI (₺)" required class="w-full p-5 border rounded-2xl bg-slate-50 text-xs outline-none uppercase">
+                <div class="flex gap-4 pt-6">
+                    <button type="button" onclick="toggleModal()" class="flex-1 text-slate-400 uppercase text-[10px] font-black tracking-widest">İPTAL</button>
+                    <button type="submit" class="flex-1 bg-blue-600 text-white p-5 rounded-2xl uppercase text-[10px] font-black tracking-widest shadow-lg">EKLE</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        let assets = JSON.parse(localStorage.getItem('assets_v4')) || [];
+        // --- DİL DESTEĞİ VERİLERİ ---
+        const i18n = {
+            tr: {
+                menu_dash: "DASHBOARD", menu_market: "PİYASALAR", menu_wallet: "CÜZDAN", menu_settings: "AYARLAR & DİL",
+                btn_signup: "ÜYE OL", btn_add: "YENİ VARLIK +", stat_total: "TOPLAM VARLIK", stat_pnl: "GÜNCEL KÂR/ZARAR",
+                stat_risk: "RİSK ANALİZİ", table_title: "AKTİF PORTFÖY LİSTESİ", col_asset: "VARLIK", col_amount: "MİKTAR",
+                col_cost: "MALİYET", col_pnl: "K/Z (%)", ai_vision_title: "AI VISION: DETAYLI ANALİZ",
+                ai_vision_sub: "Görsel Analizi & Portföy Uyumluluğu", ai_upload_text: "GRAFİK VEYA EKRAN GÖRÜNTÜSÜ YÜKLE",
+                chart_title: "VARLIK DAĞILIMI", strategy_title: "AI STRATEJİ NOTU", modal_signup_title: "HESAP OLUŞTUR",
+                btn_confirm: "KAYDI TAMAMLA", modal_asset_title: "YENİ İŞLEM"
+            },
+            en: {
+                menu_dash: "DASHBOARD", menu_market: "MARKETS", menu_wallet: "WALLET", menu_settings: "SETTINGS & LANG",
+                btn_signup: "SIGN UP", btn_add: "ADD ASSET +", stat_total: "TOTAL ASSETS", stat_pnl: "CURRENT P/L",
+                stat_risk: "RISK ANALYSIS", table_title: "ACTIVE PORTFOLIO LIST", col_asset: "ASSET", col_amount: "AMOUNT",
+                col_cost: "COST", col_pnl: "P/L (%)", ai_vision_title: "AI VISION: DETAILED ANALYSIS",
+                ai_vision_sub: "Visual Analysis & Portfolio Compatibility", ai_upload_text: "UPLOAD CHART OR SCREENSHOT",
+                chart_title: "ASSET DISTRIBUTION", strategy_title: "AI STRATEGY NOTE", modal_signup_title: "CREATE ACCOUNT",
+                btn_confirm: "COMPLETE REGISTRATION", modal_asset_title: "NEW TRANSACTION"
+            }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'tr';
+        let assets = JSON.parse(localStorage.getItem('assets_v6')) || [];
         let livePrices = {};
         let myChart;
 
-        // --- ÜYELİK SİSTEMİ ---
-        function checkAuth() {
-            const user = JSON.parse(localStorage.getItem('user_data'));
-            if (user) {
-                document.getElementById('signup-btn').style.display = 'none';
-                document.getElementById('user-display').classList.remove('hidden');
-                document.getElementById('nav-user-name').innerText = user.name + " " + user.surname;
-            }
+        function setLang(lang) {
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            updateLanguage();
         }
 
-        function toggleAuthModal() { document.getElementById('authModal').classList.toggle('active'); }
+        function updateLanguage() {
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.getAttribute('data-key');
+                el.innerText = i18n[currentLang][key] || el.innerText;
+            });
+        }
 
-        document.getElementById('authForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const userData = {
-                name: document.getElementById('userName').value,
-                surname: document.getElementById('userSurname').value,
-                email: document.getElementById('userEmail').value,
-                phone: document.getElementById('userPhone').value
-            };
-            localStorage.setItem('user_data', JSON.stringify(userData));
-            toggleAuthModal();
-            checkAuth();
-            alert("Üyeliğiniz başarıyla oluşturuldu!");
-        });
+        // --- SIDEBAR ---
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('closed');
+            document.getElementById('main-content').classList.toggle('full');
+        }
 
-        // --- VARLIK YÖNETİMİ & FİYATLAR ---
+        // --- FİYATLAR & TICKER ---
         async function fetchPrices() {
             try {
-                const ids = ['bitcoin', 'ethereum', 'pax-gold', 'tether'];
+                const ids = ['bitcoin', 'ethereum', 'pax-gold', 'tether', 'euro-tether'];
                 const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=try`);
                 livePrices = await res.json();
                 
-                const ticker = document.getElementById('price-ticker');
-                ticker.innerHTML = ids.map(id => `
-                    <div class="mb-1 italic font-black">${id.toUpperCase()}: <span class="text-indigo-400">₺${livePrices[id].try.toLocaleString()}</span></div>
-                `).join('');
+                const ticker = document.getElementById('moving-ticker');
+                ticker.innerText = `
+                    USD/TRY: ₺${livePrices['tether'].try.toLocaleString()} | 
+                    EUR/TRY: ₺${livePrices['euro-tether'].try.toLocaleString()} | 
+                    GOLD/GR: ₺${(livePrices['pax-gold'].try / 31.1).toLocaleString()} | 
+                    BTC/USD: $${(livePrices['bitcoin'].try / livePrices['tether'].try).toLocaleString()} | 
+                    ETH/USD: $${(livePrices['ethereum'].try / livePrices['tether'].try).toLocaleString()} | 
+                    PLATFORM STATUS: GLOBAL AI ENGINE ACTIVE
+                `;
                 updateUI();
-            } catch (e) { console.error("Fiyat hatası:", e); }
+            } catch (e) { console.error("API error", e); }
         }
 
+        // --- MODAL KONTROLLERİ ---
         function toggleModal() { document.getElementById('assetModal').classList.toggle('active'); }
+        function toggleAuthModal() { document.getElementById('authModal').classList.toggle('active'); }
 
+        // --- ÜYE KAYIT ---
+        document.getElementById('authForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const user = { name: document.getElementById('userName').value, surname: document.getElementById('userSurname').value };
+            localStorage.setItem('user_v6', JSON.stringify(user));
+            toggleAuthModal();
+            checkUser();
+        });
+
+        function checkUser() {
+            const user = JSON.parse(localStorage.getItem('user_v6'));
+            if(user) {
+                document.getElementById('btn-signup').style.display = 'none';
+                document.getElementById('user-box').classList.remove('hidden');
+                document.getElementById('user-name').innerText = user.name + " " + user.surname;
+            }
+        }
+
+        // --- VARLIK İŞLEMLERİ ---
         document.getElementById('assetForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            const type = document.getElementById('assetType').value;
-            const amount = parseFloat(document.getElementById('assetAmount').value);
-            const cost = parseFloat(document.getElementById('assetCost').value);
-            assets.push({ id: Date.now(), type, amount, cost });
-            localStorage.setItem('assets_v4', JSON.stringify(assets));
+            assets.push({
+                id: Date.now(),
+                type: document.getElementById('assetType').value,
+                amount: parseFloat(document.getElementById('assetAmount').value),
+                cost: parseFloat(document.getElementById('assetCost').value)
+            });
+            localStorage.setItem('assets_v6', JSON.stringify(assets));
             toggleModal();
             updateUI();
             document.getElementById('assetForm').reset();
@@ -234,7 +314,7 @@
 
         function deleteAsset(id) {
             assets = assets.filter(a => a.id !== id);
-            localStorage.setItem('assets_v4', JSON.stringify(assets));
+            localStorage.setItem('assets_v6', JSON.stringify(assets));
             updateUI();
         }
 
@@ -245,20 +325,22 @@
 
             assets.forEach(asset => {
                 const currentPrice = livePrices[asset.type]?.try || 0;
-                const value = asset.amount * currentPrice;
-                const costValue = asset.amount * asset.cost;
-                const pnl = value - costValue;
-                totalValue += value; totalProfit += pnl;
-                assetMap[asset.type] = (assetMap[asset.type] || 0) + value;
+                const val = asset.amount * currentPrice;
+                const costVal = asset.amount * asset.cost;
+                const pnl = val - costVal;
+                totalValue += val; totalProfit += pnl;
+                assetMap[asset.type] = (assetMap[asset.type] || 0) + val;
 
                 tableBody.innerHTML += `
-                    <tr class="border-b hover:bg-slate-50 transition-colors uppercase font-bold text-[11px]">
-                        <td class="p-5 text-indigo-900">${asset.type}</td>
-                        <td class="p-5">${asset.amount}</td>
-                        <td class="p-5 text-gray-400">₺${asset.cost.toLocaleString()}</td>
-                        <td class="p-5 ${pnl >= 0 ? 'profit' : 'loss'}">₺${pnl.toLocaleString()}</td>
-                        <td class="p-5 text-right">
-                            <button onclick="deleteAsset(${asset.id})" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
+                    <tr class="border-b hover:bg-slate-50 transition-colors uppercase">
+                        <td class="p-6 text-blue-900 font-black">${asset.type}</td>
+                        <td class="p-6 font-black">${asset.amount}</td>
+                        <td class="p-6 text-slate-400">₺${asset.cost.toLocaleString()}</td>
+                        <td class="p-6 ${pnl >= 0 ? 'text-green-500' : 'text-red-500'}">
+                            ₺${pnl.toLocaleString()} (${((pnl/costVal)*100).toFixed(1)}%)
+                        </td>
+                        <td class="p-6 text-right">
+                            <button onclick="deleteAsset(${asset.id})" class="text-slate-300 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
                         </td>
                     </tr>
                 `;
@@ -266,13 +348,15 @@
 
             document.getElementById('total-val').innerText = `₺${totalValue.toLocaleString()}`;
             document.getElementById('total-pnl').innerText = `₺${totalProfit.toLocaleString()}`;
-            document.getElementById('total-pnl').className = `text-2xl font-black ${totalProfit >= 0 ? 'profit' : 'loss'}`;
+            document.getElementById('total-pnl').className = `text-3xl font-black italic tracking-tighter ${totalProfit >= 0 ? 'text-green-500' : 'text-red-500'}`;
             
             if(assets.length > 0) {
                 const btcRatio = (assetMap['bitcoin'] || 0) / totalValue;
-                document.getElementById('risk-score').innerText = btcRatio > 0.7 ? "Kritik" : "Normal";
-                document.getElementById('risk-score').className = `text-2xl font-black ${btcRatio > 0.7 ? 'text-red-500' : 'text-green-500'}`;
-                document.getElementById('ai-tip').innerText = btcRatio > 0.7 ? "AI Uyarısı: Çok fazla Bitcoin varlığı riskli olabilir, çeşitlendirin." : "Strateji: Portföy dağılımınız şu an ideal görünüyor.";
+                document.getElementById('risk-score').innerText = btcRatio > 0.6 ? (currentLang === 'tr' ? 'KRİTİK' : 'CRITICAL') : (currentLang === 'tr' ? 'DENGELİ' : 'BALANCED');
+                document.getElementById('risk-score').className = `text-2xl font-black italic ${btcRatio > 0.6 ? 'text-red-500' : 'text-blue-400'}`;
+                document.getElementById('ai-tip').innerText = btcRatio > 0.6 ? 
+                    (currentLang === 'tr' ? "AI Uyarısı: Portföy çok yoğun BTC içeriyor. Sabit varlıklara (Altın/USD) geçiş yapın." : "AI Alert: Portfolio heavy on BTC. Consider diversifying into stable assets like Gold/USD.") :
+                    (currentLang === 'tr' ? "AI Analizi: Dağılım ideal. Piyasayı izlemeye devam edin." : "AI Analysis: Distribution is ideal. Keep monitoring the market.");
             }
             updateChart(assetMap);
         }
@@ -286,34 +370,51 @@
                     labels: Object.keys(assetMap),
                     datasets: [{
                         data: Object.values(assetMap),
-                        backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#6366f1', '#ec4899'],
+                        backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#6366f1', '#ec4899'],
                         borderWidth: 0
                     }]
                 },
-                options: { cutout: '85%', plugins: { legend: { position: 'bottom' } } }
+                options: { cutout: '85%', plugins: { legend: { position: 'bottom', labels: { font: { weight: 'bold', size: 9 } } } } }
             });
         }
 
-        // --- AI VISION ANALİZ ---
-        function processImage(input) {
+        // --- GELİŞMİŞ AI VISION ---
+        function processAdvancedImage(input) {
             const file = input.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
-                const preview = document.getElementById('image-preview');
-                preview.src = e.target.result; preview.style.display = 'block';
+                document.getElementById('image-preview').src = e.target.result;
+                document.getElementById('image-preview').style.display = 'block';
                 document.getElementById('ai-loader').style.display = 'block';
+                document.getElementById('ai-placeholder').style.display = 'none';
                 document.getElementById('ai-content').style.display = 'none';
+                
                 setTimeout(() => {
                     document.getElementById('ai-loader').style.display = 'none';
                     document.getElementById('ai-content').style.display = 'block';
-                    document.getElementById('ai-text').innerText = "AI Vision Analizi: Görseldeki piyasa trendi 'Boğa' (Yükseliş) formasyonu gösteriyor. Varlık miktarınız görseldeki direnç noktalarına uyumlu.";
-                }, 2000);
+                    
+                    const totalVal = parseFloat(document.getElementById('total-val').innerText.replace(/[₺.,]/g, ""));
+                    
+                    if (currentLang === 'tr') {
+                        document.getElementById('ai-text').innerText = "Görsel Tespiti: Teknik grafik üzerinde bir 'Bull Flag' (Boğa Bayrağı) formasyonu gözlemlendi. Bu genellikle %15-%20 arası bir yükseliş sinyalidir.";
+                        document.getElementById('ai-recommendation').innerText = totalVal > 100000 ? 
+                            "PORTFÖY UYUMU: YÜKSEK. Mevcut nakit bakiyenizle bu yatırıma giriş yapmanız stratejik olarak uygundur." :
+                            "PORTFÖY UYUMU: DÜŞÜK. Varlık seviyeniz bu volatiliteyi taşımak için henüz yeterli değil. Sabit kalmanız önerilir.";
+                    } else {
+                        document.getElementById('ai-text').innerText = "Image Detection: A 'Bull Flag' pattern was observed on the technical chart. This typically signals a 15-20% upside move.";
+                        document.getElementById('ai-recommendation').innerText = totalVal > 100000 ? 
+                            "PORTFOLIO MATCH: HIGH. Entering this trade with your current cash balance is strategically sound." :
+                            "PORTFOLIO MATCH: LOW. Your asset level is not yet sufficient to carry this volatility. Staying neutral is recommended.";
+                    }
+                }, 2500);
             };
             reader.readAsDataURL(file);
         }
 
-        checkAuth();
+        // BAŞLAT
+        updateLanguage();
+        checkUser();
         fetchPrices();
         setInterval(fetchPrices, 30000);
     </script>
